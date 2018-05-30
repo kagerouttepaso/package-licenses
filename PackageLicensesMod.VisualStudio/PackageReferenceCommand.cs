@@ -96,7 +96,7 @@ namespace PackageLicensesMod.VisualStudio
             var solutionDir = Path.GetDirectoryName(dte.Solution.FullName);
 
             string message = string.Format(CultureInfo.CurrentCulture, "Inside {0}.MenuItemCallback()", this.GetType().FullName);
-            string title = "solutionDir";
+			string title = solutionDir;
             // Show a message box to prove we were here
             VsShellUtilities.ShowMessageBox(
                 this.package,
