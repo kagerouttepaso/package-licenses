@@ -31,8 +31,9 @@ Download license text from GtiHub and  spdx.org.</Description>
   <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.92.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="NuGet.Common" Version="4.7.0" />
     <PackageReference Include="NuGet.Protocol" Version="4.7.0" />
-    <PackageReference Include="System.Net.Http" Version="4.3.2" />
+    <PackageReference Include="System.Net.Http" Version="4.3.3" />
   </ItemGroup>
 
 </Project>
