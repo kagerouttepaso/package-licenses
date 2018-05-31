@@ -44,7 +44,7 @@ namespace PackageReferenceSample
 
 			var project = args.Length > 0 ? args[0] : fullpath;
 			// List
-			var result = PackageLicensesUtility.TryPackageReferencesListAsync(project, savefolder, log);
+			var result = PackageLicensesUtility.TryProjectPackageReferencesListAsync(project, savefolder, log);
 
 			if (result.Result == false)
 				Directory.Delete(savefolder, true);

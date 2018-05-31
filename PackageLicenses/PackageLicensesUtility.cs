@@ -119,7 +119,7 @@ namespace PackageLicenses
 		/// <param name="saveFolderPath">各種ファイルを出力するフォルダ</param>
 		/// <param name="log">logインターフェイス</param>
 		/// <returns></returns>
-		public static async Task<bool> TryPackageReferencesListAsync(string projectPath, string saveFolderPath, ILogger log)
+		public static async Task<bool> TryProjectPackageReferencesListAsync(string projectPath, string saveFolderPath, ILogger log)
 		{
 			if (System.IO.File.Exists(projectPath) == false)
 			{
@@ -338,6 +338,36 @@ namespace PackageLicenses
 					File.WriteAllText(path, l.Text, System.Text.Encoding.UTF8);
 			}
 			return filename;
+		}
+
+		/// <summary>
+		/// プロジェクトファイルを検索
+		/// </summary>
+		private static IEnumerable<FileInfo> FindProjectFile(string FolderPass)
+		{
+			var di = new DirectoryInfo(FolderPass);
+
+			return di.EnumerateFiles("*.csproj", SearchOption.AllDirectories);
+		}
+
+		/// <summary>
+		/// ソリューションフォルダからプロジェクトを取得してプロジェクトごとのライセンスを取得する
+		/// </summary>
+		/// <param name="solutionPath">ソリューションフォルダ</param>
+		/// <param name="saveFolderPath">各種ファイルを出力するフォルダ</param>
+		/// <param name="log">log</param>
+		/// <returns>
+		/// プロジェクトごとの成否
+		/// </returns>
+		public static async Task<IEnumerable<bool>> TrySolutionPackageReferencesListAsync(string solutionPath, string saveFolderPath, ILogger log)
+		{
+			var files = FindProjectFile(solutionPath);
+			var ret = new List<bool>();
+			foreach (var f in files)
+			{
+				ret.Add(await TryProjectPackageReferencesListAsync(f.FullName, Path.Combine(saveFolderPath, f.Name), log));
+			}
+			return ret;
 		}
 	}
 }
