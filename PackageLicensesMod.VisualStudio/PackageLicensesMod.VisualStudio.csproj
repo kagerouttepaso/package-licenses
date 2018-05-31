@@ -73,7 +73,10 @@
     </VSCTCompile>
     <Content Include="Resources\99.png" />
     <Content Include="Resources\ListCommand.png" />
-    <Content Include="Resources\PackageLicensesModPackage.ico" />
+    <Content Include="Resources\PackageLicensesModPackage.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
     <Content Include="Resources\PackageReferenceCommand.png" />
   </ItemGroup>
   <ItemGroup>

@@ -3,7 +3,11 @@
     <Metadata>
         <Identity Id="PackageLicensesMod.VisualStudio.d9ae72f3-4eac-422d-af83-c57f29e84887" Version="1.0" Language="en-US" Publisher="reniris" />
         <DisplayName>PackageLicensesMod.VisualStudio</DisplayName>
-        <Description xml:space="preserve">Empty VSIX Project.</Description>
+        <Description xml:space="preserve">List license of NuGet packages in 'packages' folder of a solution.
+Infer license from projectUrl and licenseUrl in the package's metadata.
+Download license text from GtiHub and spdx.org.</Description>
+        <Icon>Resources\PackageLicensesModPackage.ico</Icon>
+        <Tags>NuGet;License;GitHub;oss;opensource</Tags>
     </Metadata>
     <Installation>
         <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0, 16.0)" />
