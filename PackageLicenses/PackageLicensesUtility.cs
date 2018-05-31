@@ -236,8 +236,8 @@ namespace PackageLicenses
 				for (var i = 0; i < _headers.Count; i++)
 				{
 					sheet.Cell(1, 1 + i).SetValue(_headers[i]).Style.Font.SetBold();
-					await writer.WriteLineAsync(_headers);
 				}
+				await writer.WriteLineAsync(_headers);
 				await writer.FlushAsync();
 
 				// values

@@ -86,21 +86,31 @@ namespace PackageLicenses
         //--- 1行分のデータを一気に同期書き込み
         public void WriteLine<T>(IEnumerable<T> fields, bool quoteAlways = false)
         {
-            this.WriteLineAsync(fields, quoteAlways).Wait();
-        }
+			if (fields == null)
+				throw new ArgumentNullException("fields");
+
+			string record = FormatFields(fields, quoteAlways);
+			this.writer.Write(record + this.Setting.RecordSeparator);
+		}
 
         //--- 1行分のデータを一気に非同期書き込み
         public Task WriteLineAsync<T>(IEnumerable<T> fields, bool quoteAlways = false)
-        {
-            if (fields == null)
-                throw new ArgumentNullException("fields");
+		{
+			string record = FormatFields(fields, quoteAlways);
+			return this.writer.WriteAsync(record + this.Setting.RecordSeparator);
+		}
 
-            var formated = fields.Select(x => this.FormatField(x, quoteAlways));
-            var record = string.Join(this.Setting.FieldSeparator, formated);
-            return this.writer.WriteAsync(record + this.Setting.RecordSeparator);
-        }
+		private string FormatFields<T>(IEnumerable<T> fields, bool quoteAlways)
+		{
+			if (fields == null)
+				throw new ArgumentNullException("fields");
 
-        public void Flush()
+			var formated = fields.Select(x => this.FormatField(x, quoteAlways));
+			var record = string.Join(this.Setting.FieldSeparator, formated);
+			return record;
+		}
+
+		public void Flush()
         {
             this.writer.Flush();
         }
