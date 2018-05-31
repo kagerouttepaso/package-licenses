@@ -365,7 +365,9 @@ namespace PackageLicenses
 			var ret = new List<bool>();
 			foreach (var f in files)
 			{
-				ret.Add(await TryProjectPackageReferencesListAsync(f.FullName, Path.Combine(saveFolderPath, f.Name), log));
+				var save = Path.Combine(saveFolderPath, f.Name);
+				Directory.CreateDirectory(save);
+				ret.Add(await TryProjectPackageReferencesListAsync(f.FullName, save, log));
 			}
 			return ret;
 		}
