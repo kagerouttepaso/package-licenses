@@ -103,6 +103,8 @@ namespace PackageLicensesMod.VisualStudio
 				var tempPath = Path.Combine(Path.GetTempPath(), $"{Path.GetFileName(solutionDir)}-{DateTime.Now.ToFileTimeUtc()}");
 				Directory.CreateDirectory(tempPath);
 
+				Logger.Instance.Write = ServiceProvider.WriteOnOutputWindow;
+
 				// List
 				var result = await PackageLicensesUtility.TryPackagesListAsync(solutionDir, tempPath, Logger.Instance);
 
@@ -121,39 +123,5 @@ namespace PackageLicensesMod.VisualStudio
 				_menuCommand.Enabled = true;
 			}
 		}
-	}
-
-	internal class Logger : ILogger
-	{
-		private static Logger _instance;
-
-		public static Logger Instance
-		{
-			get
-			{
-				if (_instance == null)
-					_instance = new Logger();
-
-				return _instance;
-			}
-		}
-
-		public Action<string> Write { get; set; }
-
-		private Logger()
-		{
-		}
-
-		public void Log(LogLevel level, string data) { }
-		public void Log(ILogMessage message) { }
-		public System.Threading.Tasks.Task LogAsync(LogLevel level, string data) => System.Threading.Tasks.Task.FromResult(0);
-		public System.Threading.Tasks.Task LogAsync(ILogMessage message) => System.Threading.Tasks.Task.FromResult(0);
-		public void LogDebug(string data) => Write?.Invoke($"DEBUG: {data}\n");
-		public void LogError(string data) => Write?.Invoke($"ERROR: {data}\n");
-		public void LogInformation(string data) => Write?.Invoke($"INFORMATION: {data}\n");
-		public void LogInformationSummary(string data) => Write?.Invoke($"SUMMARY: {data}\n");
-		public void LogMinimal(string data) => Write?.Invoke($"MINIMAL: {data}\n");
-		public void LogVerbose(string data) => Write?.Invoke($"VERBOSE: {data}\n");
-		public void LogWarning(string data) => Write?.Invoke($"WARNING: {data}\n");
 	}
 }

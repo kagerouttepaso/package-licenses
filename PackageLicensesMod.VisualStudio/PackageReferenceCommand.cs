@@ -2,11 +2,13 @@
 using System.ComponentModel.Design;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using PackageLicenses;
 using Task = System.Threading.Tasks.Task;
 
 namespace PackageLicensesMod.VisualStudio
@@ -31,20 +33,22 @@ namespace PackageLicensesMod.VisualStudio
         /// </summary>
         private readonly AsyncPackage package;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PackageReferenceCommand"/> class.
-        /// Adds our command handlers for menu (commands must exist in the command table file)
-        /// </summary>
-        /// <param name="package">Owner package, not null.</param>
-        /// <param name="commandService">Command service to add command to, not null.</param>
-        private PackageReferenceCommand(AsyncPackage package, OleMenuCommandService commandService)
+		private readonly MenuCommand _menuCommand;
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="PackageReferenceCommand"/> class.
+		/// Adds our command handlers for menu (commands must exist in the command table file)
+		/// </summary>
+		/// <param name="package">Owner package, not null.</param>
+		/// <param name="commandService">Command service to add command to, not null.</param>
+		private PackageReferenceCommand(AsyncPackage package, OleMenuCommandService commandService)
         {
             this.package = package ?? throw new ArgumentNullException(nameof(package));
             commandService = commandService ?? throw new ArgumentNullException(nameof(commandService));
 
             var menuCommandID = new CommandID(CommandSet, CommandId);
-            var menuItem = new MenuCommand(this.Execute, menuCommandID);
-            commandService.AddCommand(menuItem);
+			_menuCommand = new MenuCommand(this.ExecuteAsync, menuCommandID);
+            commandService.AddCommand(_menuCommand);
         }
 
         /// <summary>
@@ -88,23 +92,40 @@ namespace PackageLicensesMod.VisualStudio
         /// </summary>
         /// <param name="sender">Event sender.</param>
         /// <param name="e">Event args.</param>
-        private void Execute(object sender, EventArgs e)
+        private async void ExecuteAsync(object sender, EventArgs e)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
-            var dte = (DTE)ServiceProvider.GetServiceAsync(typeof(DTE));
-            var solutionDir = Path.GetDirectoryName(dte.Solution.FullName);
+			var dte = (DTE)ServiceProvider.GetServiceAsync(typeof(DTE));
+			var solutionDir = Path.GetDirectoryName(dte.Solution.FullName);
 
-            string message = string.Format(CultureInfo.CurrentCulture, "Inside {0}.MenuItemCallback()", this.GetType().FullName);
-			string title = solutionDir;
-            // Show a message box to prove we were here
-            VsShellUtilities.ShowMessageBox(
-                this.package,
-                message,
-                title,
-                OLEMSGICON.OLEMSGICON_INFO,
-                OLEMSGBUTTON.OLEMSGBUTTON_OK,
-                OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
-        }
+			try
+			{
+				_menuCommand.Enabled = false;
+
+				// Create temporary folder
+				var tempPath = Path.Combine(Path.GetTempPath(), $"{Path.GetFileName(solutionDir)}-{DateTime.Now.ToFileTimeUtc()}");
+				Directory.CreateDirectory(tempPath);
+
+				Logger.Instance.Write = ServiceProvider.WriteOnOutputWindow;
+
+				// List
+				var result = await PackageLicensesUtility.TrySolutionPackageReferencesListAsync(solutionDir, tempPath, Logger.Instance);
+
+				// Open folder
+				if (result.Any(r => r == true))
+					System.Diagnostics.Process.Start(tempPath);
+				else
+					Directory.Delete(tempPath, true);
+			}
+			catch (Exception ex)
+			{
+				ServiceProvider.WriteOnOutputWindow($"ERROR: {ex.Message}\n");
+			}
+			finally
+			{
+				_menuCommand.Enabled = true;
+			}
+		}
     }
 }
