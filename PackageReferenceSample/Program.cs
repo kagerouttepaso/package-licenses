@@ -33,26 +33,49 @@ namespace PackageReferenceSample
 	{
 		static void Main(string[] args)
 		{
-			var log = new Logger();
+
 			const string samplefile = "PackageReferenceSample.csproj.xml";
 			var dir = System.AppDomain.CurrentDomain.BaseDirectory;
-			var fullpath = Path.Combine(dir, samplefile);
+			var samplepath = Path.Combine(dir, samplefile);
 
 			// Create Output folder
 			var savefolder = Path.Combine(dir, $"{Path.GetFileName("Licenses")}-{DateTime.Now.ToFileTimeUtc()}");
 			Directory.CreateDirectory(savefolder);
 
-			var project = args.Length > 0 ? args[0] : fullpath;
-			// List
-			var result = PackageLicensesUtility.TryProjectPackageReferencesListAsync(project, savefolder, log);
+			var package = args.Length > 1 ? args[1] : samplepath;
+			var command = args.Length > 0 ? args[0] : "proj";
 
-			if (result.Result == false)
-				Directory.Delete(savefolder, true);
+			switch (command)
+			{
+				case "sln":
+					SolutionPackageReferencesList(package, savefolder);
+					break;
+
+				case "proj":
+					ProjectPackageReferences(package, savefolder);
+					break;
+			}
 
 			Console.WriteLine("Completed.");
 #if DEBUG
 			Console.ReadKey();
 #endif
+		}
+
+		private static void ProjectPackageReferences(string project, string savefolder)
+		{
+			var log = new Logger();
+			var result = PackageLicensesUtility.TryProjectPackageReferencesListAsync(project, savefolder, log);
+
+			if (result.Result == false)
+				Directory.Delete(savefolder, true);
+		}
+
+		private static void SolutionPackageReferencesList(string solutionPath, string saveFolderPath)
+		{
+			var log = new Logger();
+			var result = PackageLicensesUtility.TrySolutionPackageReferencesListAsync(solutionPath, saveFolderPath, log);
+			result.Wait();
 		}
 	}
 }

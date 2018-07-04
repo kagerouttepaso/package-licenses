@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
 using static PackageLicenses.SeparatedValuesWriter;
 
@@ -50,18 +51,28 @@ namespace PackageLicenses
 			//Nugetグローバルパッケージのパス
 			var pkg = GetGlobalPackagesFolder();
 
-			XDocument xml = XDocument.Load(fullpath);
-			var result = xml.Element("Project").Elements("ItemGroup")
-				.Where(i => i.Element("PackageReference") != null).Select(i => i.Elements("PackageReference")).First();
+			//プロジェクトファイルのパース
+			var xml = XDocument.Load(fullpath);
+			var itemgroup = xml.Root.Elements().Where(i => i.Name.LocalName == "ItemGroup");
+			var result = itemgroup.Elements().Where(i => i.Name.LocalName == "PackageReference");
 
 			var packages = new List<LocalPackageInfo>();
 
 			foreach (var item in result)
 			{
 				var inc = item.Attribute("Include");
-				var ver = item.Attribute("Version");
+				var ver = item.Attributes().FirstOrDefault(i => i.Name == "Version");
+				string verValue = ver?.Value;
+				if (ver == null)
+				{
+					var ver_e = item.Elements().FirstOrDefault(i => i.Name.LocalName == "Version");
+					verValue = ver_e.Value;
+				}
 
-				var nuspec = Path.Combine(pkg, inc.Value, ver.Value, inc.Value + "." + ver.Value + ".nupkg");
+				var nuspec = Path.Combine(pkg, inc.Value, verValue, inc.Value + "." + verValue + ".nupkg");
+
+				if (File.Exists(nuspec) == false)
+					continue;
 
 				packages.Add(LocalFolderUtility.GetPackage(new Uri(nuspec), log));
 			}
@@ -362,13 +373,14 @@ namespace PackageLicenses
 		public static async Task<IEnumerable<bool>> TrySolutionPackageReferencesListAsync(string solutionPath, string saveFolderPath, ILogger log)
 		{
 			var files = FindProjectFile(solutionPath);
-			var ret = new List<bool>();
-			foreach (var f in files)
+			var ret = await Task.WhenAll(files.Select(async f =>
 			{
 				var save = Path.Combine(saveFolderPath, f.Name);
 				Directory.CreateDirectory(save);
-				ret.Add(await TryProjectPackageReferencesListAsync(f.FullName, save, log));
-			}
+
+				return await TryProjectPackageReferencesListAsync(f.FullName, save, log);
+			}));
+
 			return ret;
 		}
 	}

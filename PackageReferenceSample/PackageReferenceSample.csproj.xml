@@ -33,6 +33,9 @@
     <PackageReference Include="Toasts.Forms.Plugin" Version="3.3.2" />
     <PackageReference Include="Xamarin.Forms" Version="3.0.0.482510" />
     <PackageReference Include="Xamarinos.AdMob.FormsPlugin" Version="1.0.8" />
+    <PackageReference Include="Xamarin.GooglePlayServices.Ads">
+      <Version>60.1142.1</Version>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
